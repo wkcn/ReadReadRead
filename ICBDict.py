@@ -40,6 +40,6 @@ def ICBDict(word):
         res["voice"].append(pron[i].firstChild.data)
     for i in range(len(ps)):
         res["ps"].append(ps[i].firstChild.data)
-    if len(ps) == 0:
+    if len(ps) < 2:
         res["ps"] = ['','']
     return res

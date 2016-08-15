@@ -64,6 +64,7 @@ class MainWindow_(QtGui.QMainWindow):
         self.main.setupUi(self)
         QtCore.QObject.connect(self.main.pushButton, QtCore.SIGNAL("clicked()"), self.know)
         QtCore.QObject.connect(self.main.pushButton_2, QtCore.SIGNAL("clicked()"), self.ouch)
+        QtCore.QObject.connect(self.main.pushButton_3, QtCore.SIGNAL("clicked()"), self.easy)
         QtCore.QObject.connect(self.main.pushButton_eng, QtCore.SIGNAL("clicked()"), lambda : self.ps_click(0))
         QtCore.QObject.connect(self.main.pushButton_usa, QtCore.SIGNAL("clicked()"), lambda : self.ps_click(1))
         self.smallQueue = Queue.Queue()
@@ -78,17 +79,25 @@ class MainWindow_(QtGui.QMainWindow):
             if word not in know_word:
                 self.largeQueue.put(word)
         self.isLargeQueue = True
+        self.show_info = False
         self.get_next_word()
     def show_word(self, word):
         self.main.label.setText(word)
         icb = look_dict(word)
         self.icb = icb
-        self.word = word
-        self.main.textBrowser.setText(get_text(icb))
-        self.main.pushButton_eng.setText(icb["ps"][0])
-        self.main.pushButton_usa.setText(icb["ps"][1])
-        ratio = len(know_word) * 100.0 / len(self.words)
-        self.main.progressBar.setValue(ratio)
+        if len(icb["trans"]):
+            self.word = word
+            self.main.pushButton_eng.setText(icb["ps"][0])
+            self.main.pushButton_usa.setText(icb["ps"][1])
+            ratio = len(know_word) * 100.0 / len(self.words)
+            self.main.progressBar.setValue(ratio)
+            #self.main.textBrowser.setText(get_text(icb))
+            self.main.textBrowser.setText("")
+            self.show_info = False
+        else:
+            if word not in know_word:
+                 know_word.append(word)
+            self.get_next_word()
     def get_next_word(self):
         #buffer
         for i in range(self.largeQueue.i, min(self.largeQueue.i + 10, self.largeQueue.j)):
@@ -108,17 +117,30 @@ class MainWindow_(QtGui.QMainWindow):
             word = self.smallQueue.get()
             if self.smallQueue.empty():
                 self.isLargeQueue = True
+
+        self.show_info = False
         self.show_word(word)
 
-    def know(self):
+    def easy(self):
         if self.word not in know_word:
              know_word.append(self.word)
         self.get_next_word()
 
+    def know(self):
+        if self.show_info:
+            self.get_next_word()
+        else:
+            self.show_info = True
+            self.main.textBrowser.setText(get_text(self.icb))
+
     def ouch(self):
-        self.smallQueue.put(self.word)
-        self.largeQueue.put(self.word)
-        self.get_next_word()
+        if self.show_info: 
+            self.smallQueue.put(self.word)
+            self.largeQueue.put(self.word)
+            self.get_next_word()
+        else:
+            self.show_info = True
+            self.main.textBrowser.setText(get_text(self.icb))
 
     def ps_click(self, i):
         url = self.icb["voice"][i]

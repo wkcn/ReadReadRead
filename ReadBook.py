@@ -16,20 +16,19 @@ def split_words(line):
 
 
 def read_book(filename):
+    res = []
     words = {} #word, count
     fin = open(filename)
     for line in fin.readlines():
         for word in split_words(line):
             if not words.has_key(word):
                 words[word] = 0
+                res.append(word)
             words[word] += 1
 
-    res = []
 
     #for word in sorted(words.keys(), key = lambda r:words[r], reverse = True):
     #    res.append(word)
-    for word in words.keys():
-        res.append(word)
     return res
 
 def get_file_word(filename):
